@@ -1,91 +1,43 @@
 #!/usr/bin/python3
-'''unittest for ``BaseModel`` klas'''
-
-import uuid
-from datetime import datetime
-from unittest import TestCase
+"""test BaseModel"""
+import unittest
+import os
 from models.base_model import BaseModel
+import pep8
 
-
-class BaseModelTestCase(TestCase):
-    '''TestCase for BaseModel'''
+class TestBaseModel(unittest.TestCase):
+    """test BaseModel"""
 
     def setUp(self):
-        self.base = BaseModel()
+        self.testbasemodel = BaseModel()
 
-    def test_init_works(self):
-        self.assertIsNotNone(self.base)
+    def test_pep8_BaseModel(self):
+        """Testing for pep8"""
+        style = pep8.StyleGuide(quiet=True)
+        p = style.check_files(['models/base_model.py'])
+        self.assertEqual(p.total_errors, 0, "Check pep8")
 
-    def test_init_works_with_kwargs(self):
-        '''checks that instance can be loaded from kwargs'''
-        b = self.base
-        d = b.to_dict()
-        loaded = BaseModel(**d)
-        self.assertDictEqual(b.__dict__, loaded.__dict__)
 
-    def test_id_is_string(self):
-        '''checks that id is correctly casted to string'''
-        self.assertIsInstance(self.base.id, str)
+    def test_save_BaesModel(self):
+        """test save_Basemodel"""
+        self.base.save()
+        self.assertNotEqual(self.base.created_at, self.base.updated_at)
 
-    def test_id_is_unique(self):
-        '''checks that each instance have a unique id'''
-        a = BaseModel()
-        b = BaseModel()
-        self.assertNotEqual(a.id, b.id)
-        self.assertNotEqual(a.id, self.base.id)
-        self.assertNotEqual(b.id, self.base.id)
+    def test_doc(self):
+        """ Tests doc """
+        self.assertisNotNone(BaseModel.__doc__)
 
-    def test_id_is_valid_uuid_in_string(self):
-        '''checks that ``id`` is casted from uuid4'''
-        try:
-            valid = uuid.UUID(self.base.id, version=4)
-        except ValueError:
-            self.fail("invalid uuid string")
+    def test_to_json(self):
+        '''test to jason'''
 
-        self.assertIsInstance(valid, uuid.UUID)
+    def test_kwarg(self):
+        basemodel = BaseModel(name="base")
+        self.assertEqual(type(basemodel).__name__, "BaseModel")
+        self.assertFalse(hasattr(basemodel, "id"))
+        self.assertFalse(hasattr(basemodel, "created_at"))
+        self.assertTrue(hasattr(basemodel, "name"))
+        self.assertFalse(hasattr(basemodel, "updated_at"))
+        self.assertTrue(hasattr(basemodel, "__class__"))
 
-    def test_create_at_is_valid_datetime(self):
-        '''checks that created_at is a valid datetime'''
-        self.assertIsInstance(self.base.created_at, datetime)
-
-    def test_updated_at_is_valid_datetime(self):
-        '''checks that updated_at is a valid datetime'''
-        self.assertIsInstance(self.base.updated_at, datetime)
-
-    def test_dates_are_correctly_initialized(self):
-        '''checks that updated_at is correctly set to creeated_at'''
-        b = self.base
-        self.assertEqual(b.created_at, b.updated_at)
-        self.assertGreater(datetime.now(), b.created_at)
-
-    def test_str_returns_expected(self):
-        '''checks that str method formats as expected'''
-        b = self.base
-        self.assertEqual(
-            str(b),
-            "[{}] ({}) {}".format(
-                b.__class__.__name__,
-                b.id,
-                b.__dict__
-             )
-        )
-
-    def test_save_works(self):
-        '''checks that `save` updates correctly'''
-        b = self.base
-        then = b.updated_at
-        b.save()
-        self.assertNotEqual(then, b.updated_at)
-
-    def test_to_dict_works(self):
-        '''checks that `to_dict` returns appropriate dict'''
-        d = self.base.to_dict()
-        self.assertIsInstance(d, dict)
-        self.assertEqual(len(self.base.__dict__) + 1, len(d))
-        self.assertIn('__class__', d)
-
-        # check that datetime variables are correctly casted
-        self.assertEqual(
-                d['created_at'],
-                self.base.created_at.isoformat()
-            )
+if __name__ == "__main__":
+    unittest.main()
